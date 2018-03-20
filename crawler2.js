@@ -9,6 +9,41 @@ function urlData(link, numberOfSubpages){
     this.numberOfSubpages = numberOfSubpages;
 }
 
+function getMyResourceData(current){
+    request(current, function(error, response, body){
+        if(error){
+            console.log('Something goes wrong' + error);
+        }
+        console.log("Status code: " + response.statusCode);
+        console.log("----------------------------------")
+        if(response.statusCode === 200){
+            var $$ = cheerio.load(body);
+            var text = $$('div.text > p').text();
+            // console.log(text);
+            var url = response.request.uri.href;
+            // console.log(url);
+            var lastLinkFromSubpages = $$('div.wblock.rbl-block.pager > p > a').eq(-2).attr('href');
+            // console.log(lastLinkFromSubpages);
+            if(lastLinkFromSubpages == undefined){
+                console.log('malo komentarzy');
+                console.log(url);
+                completeRequests++;
+            }
+            else{
+                var lastLinkFromSubpages = JSON.stringify(lastLinkFromSubpages);
+                console.log(lastLinkFromSubpages);
+                var numberOfSubpages = lastLinkFromSubpages.slice(-5);
+                numberOfSubpages = numberOfSubpages.substring(numberOfSubpages.indexOf("/")+1);
+                numberOfSubpages = numberOfSubpages.substring(-1,numberOfSubpages.indexOf('"')-1);
+                console.log(numberOfSubpages);
+                dataLinks[completeRequests].numberOfSubpages = numberOfSubpages;
+                console.log(dataLinks[completeRequests]);
+                completeRequests++;
+            }
+        }
+    })
+
+}
 var dataLinks = [];
 
 var pageToVisit = "http://www.wykop.pl";
@@ -30,38 +65,10 @@ request(pageToVisit, function(error, response, body){
             dataLinks.push(urlDatax);
         });
         for(var i = 0; i < dataLinks.length-1; i++){         
-            request(dataLinks[i].url, function(error, response, body){
-                if(error){
-                    console.log('Something goes wrong' + error);
-                }
-                console.log("Status code: " + response.statusCode);
-                console.log("----------------------------------")
-                if(response.statusCode === 200){
-                    var $$ = cheerio.load(body);
-                    var text = $$('div.text > p').text();
-                    // console.log(text);
-                    var url = response.request.uri.href;
-                    // console.log(url);
-                    var lastLinkFromSubpages = $$('div.wblock.rbl-block.pager > p > a').eq(-2).attr('href');
-                    // console.log(lastLinkFromSubpages);
-                    if(lastLinkFromSubpages == undefined){
-                        console.log('malo komentarzy');
-                        console.log(url);
-                        completeRequests++;
-                    }
-                    else{
-                        var lastLinkFromSubpages = JSON.stringify(lastLinkFromSubpages);
-                        console.log(lastLinkFromSubpages);
-                        var numberOfSubpages = lastLinkFromSubpages.slice(-5);
-                        numberOfSubpages = numberOfSubpages.substring(numberOfSubpages.indexOf("/")+1);
-                        numberOfSubpages = numberOfSubpages.substring(-1,numberOfSubpages.indexOf('"')-1);
-                        console.log(numberOfSubpages);
-                        dataLinks[completeRequests].numberOfSubpages = numberOfSubpages;
-                        console.log(dataLinks[completeRequests]);
-                        completeRequests++;
-                    }
-                }
-            })
+            var current = dataLinks[i].url;
+
+            getMyResourceData(current);
+            console.log(completeRequests);
         }
     }
 });
