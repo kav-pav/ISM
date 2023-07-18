@@ -1,2 +1,2 @@
 # ISM
-Basic Crawler for Unioveristy Project
+Basic Crawler for Univeristy Project
